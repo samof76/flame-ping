@@ -27,7 +27,7 @@ defmodule FlamePingMonitor.PingRunner do
         end_time = System.monotonic_time(:millisecond)
         timeout_time = end_time - start_time
 
-        Logger.warn("Ping failed for #{domain.name}: #{reason}")
+        Logger.warning("Ping failed for #{domain.name}: #{reason}")
 
         # Send error result back to main app
         send_ping_result(domain.id, "offline", nil, reason)
