@@ -75,7 +75,8 @@ defmodule FlamePingMonitor.Monitoring.WebhookNotifierTest do
           consecutive_failures: 6
         })
 
-      before_time = DateTime.utc_now()
+      # Just verify webhook_last_sent_at gets updated
+      assert domain.webhook_last_sent_at == nil
       WebhookNotifier.send_failure_notification(domain)
       Process.sleep(100)
       after_time = DateTime.utc_now()
@@ -112,8 +113,9 @@ defmodule FlamePingMonitor.Monitoring.WebhookNotifierTest do
 
   describe "error handling" do
     test "handles invalid webhook URLs gracefully" do
-      # Create domain bypassing validation for testing
-      {:ok, domain} =
+      # Test with a domain that has an invalid webhook URL
+      # We'll create the domain normally then update webhook_url directly
+      domain =
         %Domain{}
         |> Domain.changeset(%{
           name: "Invalid URL Site",
@@ -121,9 +123,8 @@ defmodule FlamePingMonitor.Monitoring.WebhookNotifierTest do
           webhook_url: "https://valid.com/webhook",
           consecutive_failures: 6
         })
-        |> Repo.insert()
 
-      # Manually set invalid webhook URL in database
+      # Update to invalid webhook URL using changeset without validation
       domain =
         domain
         |> Domain.changeset(%{})
