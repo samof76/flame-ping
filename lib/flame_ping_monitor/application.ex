@@ -19,6 +19,8 @@ defmodule FlamePingMonitor.Application do
       {FLAME.Pool, name: FlamePingMonitor.PingRunner, min: 0, max: 10},
       # Start a worker by calling: FlamePingMonitor.Worker.start_link(arg)
       # {FlamePingMonitor.Worker, arg},
+      # Ping scheduler for 10-second intervals across all regions
+      FlamePingMonitor.Monitoring.PingScheduler,
       # Start to serve requests, typically the last entry
       FlamePingMonitorWeb.Endpoint
     ]
