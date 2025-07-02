@@ -48,8 +48,19 @@ defmodule FlamePingMonitor.PingRunner do
     try do
       start_time = System.monotonic_time(:millisecond)
 
-      # Use Req for HTTP ping with timeout
-      case Req.get(url, connect_options: [timeout: 5000], receive_timeout: 5000) do
+      # Use browser headers to avoid bot detection
+      headers = [
+        {"user-agent",
+         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"},
+        {"accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"},
+        {"accept-language", "en-US,en;q=0.5"},
+        {"accept-encoding", "gzip, deflate, br"},
+        {"dnt", "1"},
+        {"connection", "keep-alive"},
+        {"upgrade-insecure-requests", "1"}
+      ]
+
+      case Req.get(url, headers: headers, connect_options: [timeout: 5000], receive_timeout: 5000) do
         {:ok, %{status: status}} when status in 200..299 ->
           end_time = System.monotonic_time(:millisecond)
           response_time = end_time - start_time
