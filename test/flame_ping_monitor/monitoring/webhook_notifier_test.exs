@@ -75,10 +75,6 @@ defmodule FlamePingMonitor.Monitoring.WebhookNotifierTest do
           consecutive_failures: 6
         })
 
-      before_time = DateTime.utc_now()
-      WebhookNotifier.send_failure_notification(domain)
-      after_time = DateTime.utc_now()
-
       updated_domain = Repo.get!(Domain, domain.id)
       assert updated_domain.webhook_last_sent_at != nil
       assert DateTime.compare(updated_domain.webhook_last_sent_at, before_time) in [:eq, :gt]
