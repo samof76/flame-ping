@@ -9,9 +9,6 @@ defmodule FlamePingMonitor.Monitoring.PingMonitor do
   require Logger
   import Ecto.Query
 
-  @doc """
-  Starts distributed ping monitoring for a domain using FLAME.
-  """
   def start_ping(domain) do
     Logger.info("Starting FLAME ping for domain: #{domain.name}")
 
@@ -20,9 +17,6 @@ defmodule FlamePingMonitor.Monitoring.PingMonitor do
     end)
   end
 
-  @doc """
-  Starts region-specific ping monitoring for a domain using FLAME.
-  """
   def start_region_ping(domain, region) do
     Logger.debug("Starting FLAME ping for domain: #{domain.name} from region: #{region}")
 
@@ -31,9 +25,6 @@ defmodule FlamePingMonitor.Monitoring.PingMonitor do
     end)
   end
 
-  @doc """
-  Starts monitoring all domains in the database.
-  """
   def start_monitoring_all do
     domains = Repo.all(Domain)
 
@@ -44,10 +35,6 @@ defmodule FlamePingMonitor.Monitoring.PingMonitor do
     Logger.info("Started monitoring #{length(domains)} domains")
   end
 
-  @doc """
-  Handles ping results from FLAME workers and broadcasts updates.
-  Enhanced with consecutive failure tracking and webhook notifications.
-  """
   def handle_ping_result(domain_id, status, response_time, error_message \\ nil, region \\ "na") do
     # Get current domain state
     domain = Repo.get!(Domain, domain_id)
@@ -98,9 +85,7 @@ defmodule FlamePingMonitor.Monitoring.PingMonitor do
     end
   end
 
-  @doc """
-  Calculates failure tracking attributes based on ping result.
-  """
+  # Calculates failure tracking attributes based on ping result.
   defp calculate_failure_tracking(domain, status) do
     case status do
       "online" ->
@@ -119,10 +104,7 @@ defmodule FlamePingMonitor.Monitoring.PingMonitor do
     end
   end
 
-  @doc """
-  Checks if webhook notification should be sent and sends it.
-  Triggers on exactly 6 consecutive failures to avoid spam.
-  """
+  # Checks if webhook notification should be sent and sends it.
   defp check_and_send_webhook(domain) do
     if domain.consecutive_failures == 6 do
       case WebhookNotifier.send_failure_notification(domain) do
@@ -138,18 +120,12 @@ defmodule FlamePingMonitor.Monitoring.PingMonitor do
     end
   end
 
-  @doc """
-  Creates a ping result record in the database.
-  """
   def create_ping_result(attrs) do
     %PingResult{}
     |> PingResult.changeset(attrs)
     |> Repo.insert()
   end
 
-  @doc """
-  Gets recent ping results for a domain.
-  """
   def get_recent_ping_results(domain_id, limit \\ 50) do
     from(pr in PingResult,
       where: pr.domain_id == ^domain_id,
@@ -159,9 +135,6 @@ defmodule FlamePingMonitor.Monitoring.PingMonitor do
     |> Repo.all()
   end
 
-  @doc """
-  Gets recent ping results for a domain and region.
-  """
   def get_recent_ping_results_by_region(domain_id, region, limit \\ 50) do
     from(pr in PingResult,
       where: pr.domain_id == ^domain_id and pr.region == ^region,
@@ -171,9 +144,6 @@ defmodule FlamePingMonitor.Monitoring.PingMonitor do
     |> Repo.all()
   end
 
-  @doc """
-  Calculates 1-hour availability for a domain in a specific region.
-  """
   def calculate_hourly_availability(domain_id, region) do
     one_hour_ago = NaiveDateTime.utc_now() |> NaiveDateTime.add(-3600, :second)
 
@@ -198,9 +168,6 @@ defmodule FlamePingMonitor.Monitoring.PingMonitor do
     end
   end
 
-  @doc """
-  Gets latest ping status for each region for a domain.
-  """
   def get_domain_region_status(domain_id) do
     regions = ["na", "eu", "as", "sa", "oc"]
 
