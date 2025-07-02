@@ -103,13 +103,13 @@ defmodule FlamePingMonitor.Monitoring.WebhookNotifierTest do
 
   describe "error handling" do
     test "handles invalid webhook URLs gracefully" do
-      # Test with a domain that has an invalid webhook URL
-      # We'll create the domain normally then update webhook_url directly
+      # Test with a domain that has a webhook URL that will fail
+      # Use a URL that will return an error response
       domain =
         insert_domain_with_webhook(%{
           name: "Invalid URL Site",
           url: "https://invalid.com",
-          webhook_url: "https://valid.com/webhook",
+          webhook_url: "https://httpstat.us/500",
           consecutive_failures: 6
         })
 
@@ -120,7 +120,7 @@ defmodule FlamePingMonitor.Monitoring.WebhookNotifierTest do
         |> Ecto.Changeset.put_change(:webhook_url, "not-a-valid-url")
         |> Repo.update!()
 
-      # Should handle the error gracefully
+      # Should handle HTTP errors gracefully
       result = WebhookNotifier.send_failure_notification(domain)
       assert result in [:ok, :error]
     end
