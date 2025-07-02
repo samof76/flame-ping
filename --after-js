@@ -1,0 +1,69 @@
+==========================
+http://localhost:4000/
+==========================
+
+FLAME Ping Monitor
+==================
+
+Multi-Region Distributed Monitoring
+
+Total Domains
+
+1
+
+Online Regions
+
+5
+
+Offline Regions
+
+0
+
+Active Regions
+
+5
+
+Multi-Region Monitoring
+- ----------------------
+
+Add Domain
+
+Domain
+
+🇺🇸 NA
+
+🇪🇺 EU
+
+🇯🇵 AS
+
+🇧🇷 SA
+
+🇦🇺 OC
+
+Actions
+
+Google
+
+http://google.com
+
+87ms
+
+100.0%
+
+75ms
+
+100.0%
+
+81ms
+
+100.0%
+
+64ms
+
+100.0%
+
+83ms
+
+100.0%
+
+Delete
