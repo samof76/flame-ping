@@ -9,6 +9,7 @@ defmodule FlamePingMonitor.MixProject do
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
+      listeners: [Phoenix.CodeReloader],
       deps: deps()
     ]
   end
