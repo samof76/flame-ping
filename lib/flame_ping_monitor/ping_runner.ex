@@ -70,7 +70,7 @@ defmodule FlamePingMonitor.PingRunner do
     end
   end
 
-  defp send_ping_result(domain_id, status, response_time, error_message \\ nil, region \\ "na") do
+  defp send_ping_result(domain_id, status, response_time, error_message, region) do
     # This would normally send back to the main node
     # For now, we'll call the handler directly
     Task.start(fn ->
