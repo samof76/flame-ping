@@ -102,7 +102,7 @@ defmodule FlamePingMonitor.Monitoring.WebhookNotifierTest do
   end
 
   describe "error handling" do
-    test "handles invalid webhook URLs gracefully" do
+    test "handles HTTP errors gracefully" do
       # Test with a domain that has a webhook URL that will fail
       # Use a URL that will return an error response
       domain =
@@ -112,13 +112,6 @@ defmodule FlamePingMonitor.Monitoring.WebhookNotifierTest do
           webhook_url: "https://httpstat.us/500",
           consecutive_failures: 6
         })
-
-      # Update to invalid webhook URL using changeset without validation
-      domain =
-        domain
-        |> Domain.changeset(%{})
-        |> Ecto.Changeset.put_change(:webhook_url, "not-a-valid-url")
-        |> Repo.update!()
 
       # Should handle HTTP errors gracefully
       result = WebhookNotifier.send_failure_notification(domain)
