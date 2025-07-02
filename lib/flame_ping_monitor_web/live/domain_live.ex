@@ -1,7 +1,6 @@
 defmodule FlamePingMonitorWeb.DomainLive do
   use FlamePingMonitorWeb, :live_view
-  alias FlamePingMonitor.Monitoring.Domain
-  alias FlamePingMonitor.Monitoring.PingMonitor
+  alias FlamePingMonitor.Monitoring.{Domain, PingMonitor, PingScheduler}
   alias FlamePingMonitor.Repo
   import Ecto.Query
 
@@ -10,13 +9,16 @@ defmodule FlamePingMonitorWeb.DomainLive do
       Phoenix.PubSub.subscribe(FlamePingMonitor.PubSub, "domain_updates")
     end
 
-    domains = list_domains()
+    domains = list_domains_with_region_status()
 
     {:ok,
      socket
      |> assign(:domains, domains)
      |> assign(:form, to_form(Domain.changeset(%Domain{}, %{})))
-     |> assign(:show_form, false)}
+     |> assign(:show_form, false)
+     |> assign(:regions, PingScheduler.regions())
+     |> assign(:region_names, PingScheduler.region_names())
+     |> assign(:region_flags, PingScheduler.region_flags())}
   end
 
   def handle_event("new_domain", _params, socket) do
@@ -40,8 +42,10 @@ defmodule FlamePingMonitorWeb.DomainLive do
   def handle_event("save", %{"domain" => domain_params}, socket) do
     case create_domain(domain_params) do
       {:ok, domain} ->
-        # Start FLAME ping monitoring for the new domain
-        Task.start(fn -> PingMonitor.start_ping(domain) end)
+        # Start FLAME ping monitoring for the new domain from all regions
+        for region <- PingScheduler.regions() do
+          Task.start(fn -> PingMonitor.start_region_ping(domain, region) end)
+        end
 
         Phoenix.PubSub.broadcast(
           FlamePingMonitor.PubSub,
@@ -54,7 +58,7 @@ defmodule FlamePingMonitorWeb.DomainLive do
          |> put_flash(:info, "Domain added successfully!")
          |> assign(:show_form, false)
          |> assign(:form, to_form(Domain.changeset(%Domain{}, %{})))
-         |> assign(:domains, list_domains())}
+         |> assign(:domains, list_domains_with_region_status())}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}
@@ -70,7 +74,7 @@ defmodule FlamePingMonitorWeb.DomainLive do
     {:noreply,
      socket
      |> put_flash(:info, "Domain deleted successfully!")
-     |> assign(:domains, list_domains())}
+     |> assign(:domains, list_domains_with_region_status())}
   end
 
   def handle_event("cancel", _params, socket) do
@@ -81,20 +85,34 @@ defmodule FlamePingMonitorWeb.DomainLive do
   end
 
   def handle_info({:domain_added, _domain}, socket) do
-    {:noreply, assign(socket, :domains, list_domains())}
+    {:noreply, assign(socket, :domains, list_domains_with_region_status())}
   end
 
   def handle_info({:domain_deleted, _domain}, socket) do
-    {:noreply, assign(socket, :domains, list_domains())}
+    {:noreply, assign(socket, :domains, list_domains_with_region_status())}
+  end
+
+  def handle_info({:region_ping_update, domain_id, region, status, response_time}, socket) do
+    domains = list_domains_with_region_status()
+    {:noreply, assign(socket, :domains, domains)}
   end
 
   def handle_info({:ping_update, _domain_id, _status, _response_time}, socket) do
-    domains = list_domains()
+    domains = list_domains_with_region_status()
     {:noreply, assign(socket, :domains, domains)}
   end
 
   defp list_domains do
     Repo.all(from d in Domain, order_by: [desc: d.inserted_at])
+  end
+
+  defp list_domains_with_region_status do
+    domains = list_domains()
+
+    Enum.map(domains, fn domain ->
+      region_status = PingMonitor.get_domain_region_status(domain.id)
+      Map.put(domain, :region_status, region_status)
+    end)
   end
 
   defp create_domain(attrs) do
