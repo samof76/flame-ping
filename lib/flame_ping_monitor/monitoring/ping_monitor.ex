@@ -47,7 +47,7 @@ defmodule FlamePingMonitor.Monitoring.PingMonitor do
       error_message: error_message
     }
 
-    case Repo.update(Domain.changeset(domain, update_attrs)) do
+    case domain |> Domain.changeset(update_attrs) |> Repo.update() do
       {:ok, updated_domain} ->
         # Store ping result in history
         create_ping_result(%{
