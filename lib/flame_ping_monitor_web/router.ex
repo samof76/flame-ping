@@ -17,7 +17,7 @@ defmodule FlamePingMonitorWeb.Router do
   scope "/", FlamePingMonitorWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    live "/", DomainLive
   end
 
   # Other scopes may use custom stacks.
