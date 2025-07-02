@@ -1,3 +1,6 @@
+==> flame
+Compiling 16 files (.ex)
+Generated flame app
 defmodule FlamePingMonitor.MixProject do
   use Mix.Project
 
