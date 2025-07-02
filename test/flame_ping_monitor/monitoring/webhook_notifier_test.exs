@@ -53,9 +53,15 @@ defmodule FlamePingMonitor.Monitoring.WebhookNotifierTest do
         })
 
       log =
-        capture_log(fn ->
+        capture_log([level: :info], fn ->
           WebhookNotifier.send_failure_notification(domain)
+          # Give time for async logging
+          Process.sleep(10)
         end)
+
+      capture_log(fn ->
+        WebhookNotifier.send_failure_notification(domain)
+      end)
 
       assert log =~ "Webhook notification sent successfully for domain: https://success.com"
     end
