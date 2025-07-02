@@ -92,7 +92,7 @@ defmodule FlamePingMonitorWeb.DomainLive do
     {:noreply, assign(socket, :domains, list_domains_with_region_status())}
   end
 
-  def handle_info({:region_ping_update, domain_id, region, status, response_time}, socket) do
+  def handle_info({:region_ping_update, _domain_id, _region, _status, _response_time}, socket) do
     domains = list_domains_with_region_status()
     {:noreply, assign(socket, :domains, domains)}
   end
