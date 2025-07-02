@@ -1,6 +1,7 @@
 defmodule FlamePingMonitorWeb.DomainLive do
   use FlamePingMonitorWeb, :live_view
   alias FlamePingMonitor.Monitoring.Domain
+  alias FlamePingMonitor.Monitoring.PingMonitor
   alias FlamePingMonitor.Repo
   import Ecto.Query
 
@@ -39,6 +40,9 @@ defmodule FlamePingMonitorWeb.DomainLive do
   def handle_event("save", %{"domain" => domain_params}, socket) do
     case create_domain(domain_params) do
       {:ok, domain} ->
+        # Start FLAME ping monitoring for the new domain
+        Task.start(fn -> PingMonitor.start_ping(domain) end)
+
         Phoenix.PubSub.broadcast(
           FlamePingMonitor.PubSub,
           "domain_updates",
