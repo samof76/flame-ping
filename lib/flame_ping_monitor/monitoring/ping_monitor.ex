@@ -15,7 +15,9 @@ defmodule FlamePingMonitor.Monitoring.PingMonitor do
   def start_ping(domain) do
     Logger.info("Starting FLAME ping for domain: #{domain.name}")
 
-    FLAME.call(FlamePingMonitor.PingRunner, :ping_domain, [domain])
+    FLAME.call(FlamePingMonitor.PingRunner, fn ->
+      FlamePingMonitor.PingRunner.ping_domain(domain)
+    end)
   end
 
   @doc """
