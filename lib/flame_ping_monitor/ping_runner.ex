@@ -11,15 +11,23 @@ defmodule FlamePingMonitor.PingRunner do
   This function runs on FLAME workers for distributed monitoring.
   """
   def ping_domain(domain) do
-    Logger.info("FLAME worker pinging: #{domain.url}")
+    ping_domain_from_region(domain, "na")
+  end
+
+  @doc """
+  Pings a domain from a specific region and returns the result.
+  This function runs on FLAME workers for distributed monitoring.
+  """
+  def ping_domain_from_region(domain, region) do
+    Logger.info("FLAME worker pinging: #{domain.url} from region: #{region}")
     start_time = System.monotonic_time(:millisecond)
 
     case perform_ping(domain.url) do
       {:ok, response_time} ->
-        Logger.info("Ping successful for #{domain.name}: #{response_time}ms")
+        Logger.info("Ping successful for #{domain.name} from #{region}: #{response_time}ms")
 
-        # Send result back to main app
-        send_ping_result(domain.id, "online", response_time)
+        # Send result back to main app with region
+        send_ping_result(domain.id, "online", response_time, nil, region)
 
         {:ok, "online", response_time}
 
@@ -27,18 +35,15 @@ defmodule FlamePingMonitor.PingRunner do
         end_time = System.monotonic_time(:millisecond)
         timeout_time = end_time - start_time
 
-        Logger.warning("Ping failed for #{domain.name}: #{reason}")
+        Logger.warning("Ping failed for #{domain.name} from #{region}: #{reason}")
 
-        # Send error result back to main app
-        send_ping_result(domain.id, "offline", nil, reason)
+        # Send error result back to main app with region
+        send_ping_result(domain.id, "offline", nil, reason, region)
 
         {:error, "offline", timeout_time, reason}
     end
   end
 
-  @doc """
-  Performs the actual HTTP ping to the domain.
-  """
   defp perform_ping(url) do
     try do
       start_time = System.monotonic_time(:millisecond)
@@ -65,14 +70,11 @@ defmodule FlamePingMonitor.PingRunner do
     end
   end
 
-  @doc """
-  Sends ping result back to the main application.
-  """
-  defp send_ping_result(domain_id, status, response_time, error_message \\ nil) do
+  defp send_ping_result(domain_id, status, response_time, error_message \\ nil, region \\ "na") do
     # This would normally send back to the main node
     # For now, we'll call the handler directly
     Task.start(fn ->
-      PingMonitor.handle_ping_result(domain_id, status, response_time, error_message)
+      PingMonitor.handle_ping_result(domain_id, status, response_time, error_message, region)
     end)
   end
 end
