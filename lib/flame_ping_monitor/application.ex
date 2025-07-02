@@ -12,8 +12,11 @@ defmodule FlamePingMonitor.Application do
       FlamePingMonitor.Repo,
       {Ecto.Migrator,
        repos: Application.fetch_env!(:flame_ping_monitor, :ecto_repos), skip: skip_migrations?()},
-      {DNSCluster, query: Application.get_env(:flame_ping_monitor, :dns_cluster_query) || :ignore},
+      {DNSCluster,
+       query: Application.get_env(:flame_ping_monitor, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: FlamePingMonitor.PubSub},
+      # FLAME pool for distributed ping workers
+      {FLAME.Pool, name: FlamePingMonitor.PingRunner, min: 0, max: 10},
       # Start a worker by calling: FlamePingMonitor.Worker.start_link(arg)
       # {FlamePingMonitor.Worker, arg},
       # Start to serve requests, typically the last entry
