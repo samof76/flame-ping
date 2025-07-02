@@ -87,7 +87,7 @@ defmodule FlamePingMonitor.Monitoring.PingResultTest do
     end
 
     test "valid changeset with all supported statuses", %{domain: domain} do
-      statuses = ["online", "offline", "checking"]
+      statuses = ["online", "offline"]
 
       for status <- statuses do
         attrs = %{
